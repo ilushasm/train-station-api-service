@@ -69,7 +69,15 @@ class Ticket(models.Model):
     cargo = models.IntegerField()
     seat = models.IntegerField()
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="tickets")
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="orders")
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="tickets")
+
+    @staticmethod
+    def validate_ticket(seat, train, error_to_raise) -> None:
+        count_attrs = train.seats_num
+        if not (1 <= seat <= count_attrs):
+            raise error_to_raise(
+                {f"Seat number must be in range [1, {count_attrs}"}
+            )
 
     def __str__(self) -> str:
         return f"Seat: {self.seat}, {self.trip}"
