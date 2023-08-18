@@ -51,63 +51,77 @@ class CrewSerializer(serializers.ModelSerializer):
 
 
 class TripSerializer(serializers.ModelSerializer):
-    route = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
-    # train = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
-    train = TrainSerializer(many=False, read_only=True)
-
     class Meta:
         model = Trip
-        fields = ("id", "route", "train", "departure_time", "arrival_time")
+        fields = ("id", "route", "departure_time", "arrival_time", "train")
+
+
+class TripListSerializer(TripSerializer):
+    train_info = serializers.CharField(source="train.name", read_only=True)
+    train_seats = serializers.IntegerField(source="train.seats_num", read_only=True)
+    # available_seats = serializers.IntegerField(read_only=True)
+
+    class Meta(TripSerializer.Meta):
+        fields = (
+            "id",
+            "route",
+            "departure_time",
+            "arrival_time",
+            "train_info",
+            "train_seats",
+            "available_seats"
+        )
+
+
+class TripRetrieveSerializer(TripSerializer):
+    bus = TrainSerializer(many=False, read_only=True)
+    taken_seats = serializers.SlugRelatedField(
+        source="tickets",
+        many=True,
+        read_only=True,
+        slug_field="seat"
+    )
+
+    class Meta(TripSerializer.Meta):
+        fields = TripSerializer.Meta.fields + ("taken_seats",)
 
 
 class TicketSerializer(serializers.ModelSerializer):
-    # trip = serializers.SlugRelatedField(many=False, read_only=True, slug_field="route")
-    trip = serializers.SlugField(source="trip.route.name")
-    departure = serializers.SlugField(source="trip.departure_time")
-    arrival = serializers.SlugField(source="trip.arrival_time")
-
     def validate(self, attrs) -> None:
-        data = super(TicketSerializer, self).validate(attrs=attrs)
+        data = super(TicketSerializer, self).validate(attrs)
         Ticket.validate_ticket(
             seat=attrs["seat"],
             train=attrs["trip"].train,
-            error_to_raise=ValidationError,
+            error_to_raise=ValidationError
         )
         return data
 
     class Meta:
         model = Ticket
-        fields = ("cargo", "seat", "trip", "departure", "arrival")
-
-
-class TicketListSerializer(TicketSerializer):
-    class Meta:
-        model = Ticket
-        fields = ("id", "seat", "cargo")
+        fields = ("cargo", "seat", "trip")
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(many=False, read_only=True, slug_field="email")
-    # ticket_list = TicketListSerializer(many=True, read_only=False)
-    tickets = TicketSerializer(many=True, read_only=True)
+    tickets = TicketSerializer(many=True)
 
     class Meta:
         model = Order
-        fields = ("id", "created_at", "user", "tickets")
+        fields = ("user", "tickets")
 
-    def create(self, validated_data) -> None:
+    def create(self, validated_data) -> Order:
         with transaction.atomic():
             tickets_data = validated_data.pop("tickets")
             order = Order.objects.create(**validated_data)
+
             for ticket_data in tickets_data:
                 Ticket.objects.create(order=order, **ticket_data)
+
             return order
 
 
-class OrderListSerializer(serializers.ModelSerializer):
-    tickets = TicketListSerializer(many=True, read_only=True)
-    user = serializers.SlugRelatedField(many=False, read_only=True, slug_field="email")
+class TicketListSerializer(TicketSerializer):
+    trip = TripSerializer(many=False, read_only=True)
 
-    class Meta:
-        model = Order
-        fields = ("id", "created_at", "user", "tickets")
+
+class OrderListSerializer(OrderSerializer):
+    tickets = TicketListSerializer(many=True, read_only=True)

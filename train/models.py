@@ -1,3 +1,5 @@
+from rest_framework.exceptions import ValidationError
+
 from django.db import models
 from django.contrib.auth import get_user_model
 
@@ -71,6 +73,9 @@ class Ticket(models.Model):
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="tickets")
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="tickets")
 
+    class Meta:
+        unique_together = ("trip", "seat")
+
     @staticmethod
     def validate_ticket(seat, train, error_to_raise) -> None:
         count_attrs = train.seats_num
@@ -82,5 +87,15 @@ class Ticket(models.Model):
     def __str__(self) -> str:
         return f"Seat: {self.seat}, {self.trip}"
 
-    class Meta:
-        unique_together = ("trip", "seat")
+    def clean(self) -> None:
+        Ticket.validate_ticket(
+            seat=self.seat,
+            train=self.trip.train,
+            error_to_raise=ValidationError
+        )
+
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ) -> None:
+        self.full_clean()
+        return super(Ticket, self).save(force_insert, force_update, using, update_fields)

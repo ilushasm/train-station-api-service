@@ -1,5 +1,6 @@
 from typing import Type
 
+from django.db.models import QuerySet
 from rest_framework import viewsets, mixins
 from rest_framework.serializers import Serializer
 from train.models import (
@@ -62,24 +63,6 @@ class CrewViewSet(
     serializer_class = CrewSerializer
 
 
-class OrderViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet
-):
-    queryset = Order.objects.prefetch_related("tickets")
-    serializer_class = OrderSerializer
-
-    def get_queryset(self) -> None:
-        return Order.objects.filter(user=self.request.user)
-
-    def get_serializer_class(self) -> Type[Serializer]:
-        if self.action == "list":
-            return OrderListSerializer
-        else:
-            return OrderSerializer
-
-
 class TripViewSet(viewsets.ModelViewSet):
     queryset = Trip.objects.all()
     serializer_class = TripSerializer
@@ -88,3 +71,24 @@ class TripViewSet(viewsets.ModelViewSet):
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+    def get_queryset(self) -> Type[QuerySet]:
+        queryset = self.queryset.filter(user=self.request.user)
+
+        if self.action == "list":
+            queryset = queryset.prefetch_related("tickets__trip__train")
+
+        return queryset
+
+    def get_serializer_class(self) -> Type[Serializer]:
+        if self.action == "list":
+            return OrderListSerializer
+        return OrderSerializer
+
+    def perform_create(self, serializer) -> None:
+        serializer.save(user=self.request.user)
