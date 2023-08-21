@@ -21,8 +21,14 @@ class TrainTypeSerializer(serializers.ModelSerializer):
         fields = ("id", "name")
 
 
+class CrewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Crew
+        fields = ("id", "first_name", "last_name")
+
+
 class TrainSerializer(serializers.ModelSerializer):
-    train_type = serializers.SlugRelatedField(many=False, read_only=Train, slug_field="name")
+    train_type = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
 
     class Meta:
         model = Train
@@ -44,10 +50,7 @@ class RouteSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "source", "destination", "distance")
 
 
-class CrewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Crew
-        fields = ("id", "first_name", "last_name")
+
 
 
 class TripSerializer(serializers.ModelSerializer):
@@ -57,24 +60,23 @@ class TripSerializer(serializers.ModelSerializer):
 
 
 class TripListSerializer(TripSerializer):
-    train_info = serializers.CharField(source="train.name", read_only=True)
-    train_seats = serializers.IntegerField(source="train.seats_num", read_only=True)
-    # available_seats = serializers.IntegerField(read_only=True)
+    train_type = serializers.CharField(source="train.train_type", read_only=True)
+    route_name = serializers.CharField(source="route.name", read_only=True)
+    available_seats = serializers.IntegerField(read_only=True)
 
     class Meta(TripSerializer.Meta):
         fields = (
             "id",
-            "route",
+            "route_name",
             "departure_time",
             "arrival_time",
-            "train_info",
-            "train_seats",
+            "train_type",
             "available_seats"
         )
 
 
-class TripRetrieveSerializer(TripSerializer):
-    bus = TrainSerializer(many=False, read_only=True)
+class TripRetrieveSerializer(TripListSerializer):
+    train = TrainSerializer(many=False, read_only=True)
     taken_seats = serializers.SlugRelatedField(
         source="tickets",
         many=True,
@@ -82,8 +84,27 @@ class TripRetrieveSerializer(TripSerializer):
         slug_field="seat"
     )
 
-    class Meta(TripSerializer.Meta):
-        fields = TripSerializer.Meta.fields + ("taken_seats",)
+    class Meta(TripListSerializer.Meta):
+        fields = (
+            "id",
+            "route_name",
+            "departure_time",
+            "arrival_time",
+            "train",
+            "taken_seats",
+            "available_seats"
+        )
+
+
+class TrainRetrieveSerializer(TrainSerializer):
+    trips = serializers.SerializerMethodField()
+
+    class Meta(TrainSerializer.Meta):
+        fields = TrainSerializer.Meta.fields + ("trips",)
+
+    def get_trips(self, instance) -> list:
+        trips_queryset = instance.trips.all()
+        return [trip.route.name for trip in trips_queryset]
 
 
 class TicketSerializer(serializers.ModelSerializer):

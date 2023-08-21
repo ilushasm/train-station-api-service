@@ -43,6 +43,7 @@ class Route(models.Model):
 class Crew(models.Model):
     first_name = models.CharField(max_length=63)
     last_name = models.CharField(max_length=63)
+    assigned_trips = models.ForeignKey("Trip", on_delete=models.CASCADE, related_name="trips", null=True)
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"
@@ -61,7 +62,6 @@ class Trip(models.Model):
     train = models.ForeignKey(Train, on_delete=models.CASCADE, related_name="trips")
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
-    train_staff = models.ManyToManyField(Crew, related_name="trips")
 
     def __str__(self) -> str:
         return f"{self.route} [{self.departure_time}]"
