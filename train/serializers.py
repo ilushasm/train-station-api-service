@@ -21,12 +21,6 @@ class TrainTypeSerializer(serializers.ModelSerializer):
         fields = ("id", "name")
 
 
-class CrewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Crew
-        fields = ("id", "first_name", "last_name")
-
-
 class TrainSerializer(serializers.ModelSerializer):
     train_type = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
 
@@ -96,6 +90,19 @@ class TripRetrieveSerializer(TripListSerializer):
             "taken_seats",
             "available_seats"
         )
+
+
+class CrewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Crew
+        fields = ("id", "first_name", "last_name", "assigned_trips")
+
+
+class CrewListSerializer(CrewSerializer):
+    assigned_trips = TripListSerializer(many=False, read_only=False)
+
+    class Meta(CrewSerializer.Meta):
+        pass
 
 
 class TrainRetrieveSerializer(TrainSerializer):

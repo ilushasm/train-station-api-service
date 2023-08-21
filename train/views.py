@@ -21,6 +21,7 @@ from train.serializers import (
     RouteSerializer,
     RouteListSerializer,
     CrewSerializer,
+    CrewListSerializer,
     OrderSerializer,
     OrderListSerializer,
     TripSerializer,
@@ -83,8 +84,13 @@ class CrewViewSet(
     mixins.CreateModelMixin,
     viewsets.GenericViewSet
 ):
-    queryset = Crew.objects.all()
+    queryset = Crew.objects.prefetch_related("assigned_trips")
     serializer_class = CrewSerializer
+
+    def get_serializer_class(self) -> Type[Serializer]:
+        if self.action == "list":
+            return CrewListSerializer
+        return CrewSerializer
 
 
 class TripViewSet(viewsets.ModelViewSet):
