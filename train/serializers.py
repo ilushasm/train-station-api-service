@@ -92,14 +92,14 @@ class TicketSerializer(serializers.ModelSerializer):
         Ticket.validate_ticket(
             seat=attrs["seat"],
             train=attrs["trip"].train,
-            cargo=attrs["cargo"],
+            luggage_weight=attrs["luggage_weight"],
             error_to_raise=ValidationError
         )
         return data
 
     class Meta:
         model = Ticket
-        fields = ("cargo", "seat", "trip")
+        fields = ("luggage_weight", "seat", "trip")
 
 
 class OrderSerializer(serializers.ModelSerializer):

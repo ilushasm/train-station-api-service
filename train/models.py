@@ -68,7 +68,7 @@ class Trip(models.Model):
 
 
 class Ticket(models.Model):
-    cargo = models.IntegerField()
+    luggage_weight = models.IntegerField()
     seat = models.IntegerField()
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="tickets")
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="tickets")
@@ -77,14 +77,14 @@ class Ticket(models.Model):
         unique_together = ("trip", "seat")
 
     @staticmethod
-    def validate_ticket(seat, train, cargo, error_to_raise) -> None:
+    def validate_ticket(seat, train, luggage_weight, error_to_raise) -> None:
         seats = train.seats_num
         max_luggage = train.luggage_space
         if not 1 <= seat <= seats:
             raise error_to_raise(
                 {f"Seat number must be in range [1, {seats}"}
             )
-        if cargo > max_luggage:
+        if luggage_weight > max_luggage:
             raise error_to_raise(
                 {f"Maximum luggage space per ticket is {train.luggage_space}"}
             )
@@ -96,7 +96,7 @@ class Ticket(models.Model):
         Ticket.validate_ticket(
             seat=self.seat,
             train=self.trip.train,
-            cargo=self.cargo,
+            luggage_weight=self.luggage_weight,
             error_to_raise=ValidationError
         )
 
