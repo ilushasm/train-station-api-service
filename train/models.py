@@ -86,7 +86,7 @@ class Ticket(models.Model):
             )
         if luggage_weight > max_luggage:
             raise error_to_raise(
-                {f"Maximum luggage space per ticket is {train.luggage_space}"}
+                {f"Maximum luggage weight per ticket is {train.luggage_space}"}
             )
 
     def __str__(self) -> str:
