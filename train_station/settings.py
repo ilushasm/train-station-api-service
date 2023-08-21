@@ -145,5 +145,5 @@ AUTH_USER_MODEL = "user.User"
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=300),  # default = 5
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  # default = 1
-    "ROTATE_REFRESH_TOKENS": True,  # refresh token endpoint returning not only access tokens but refresh token as well
+    "ROTATE_REFRESH_TOKENS": False,
 }

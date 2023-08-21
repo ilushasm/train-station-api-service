@@ -4,6 +4,11 @@ from django.db.models import QuerySet, Count, F
 from rest_framework import viewsets, mixins
 from rest_framework.serializers import Serializer
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from train.permissions import IsAdminOrReadOnly
 from train.models import (
     TrainType,
     Train,
@@ -42,12 +47,16 @@ class TrainTypeViewSet(
 ):
     queryset = TrainType.objects.all()
     serializer_class = TrainTypeSerializer
+    permission_classes = (IsAdminUser,)
+    authentication_classes = (JWTAuthentication,)
 
 
 class TrainViewSet(viewsets.ModelViewSet):
     queryset = Train.objects.all()
     serializer_class = TrainSerializer
     pagination_class = StandardPagination
+    permission_classes = (IsAdminUser,)
+    authentication_classes = (JWTAuthentication,)
 
     def get_serializer_class(self) -> Type[Serializer]:
         if self.action == "retrieve":
@@ -68,6 +77,8 @@ class StationViewSet(
 ):
     queryset = Station.objects.all()
     serializer_class = StationSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    authentication_classes = (JWTAuthentication,)
 
 
 class RouteViewSet(
@@ -78,6 +89,8 @@ class RouteViewSet(
     queryset = Route.objects.all()
     serializer_class = RouteSerializer
     pagination_class = StandardPagination
+    permission_classes = (IsAdminOrReadOnly,)
+    authentication_classes = []
 
     def get_serializer_class(self) -> Type[Serializer]:
         if self.action == "list":
@@ -105,6 +118,8 @@ class CrewViewSet(
 ):
     queryset = Crew.objects.prefetch_related("assigned_trips")
     serializer_class = CrewSerializer
+    permission_classes = (IsAdminUser,)
+    authentication_classes = (JWTAuthentication,)
 
     def get_serializer_class(self) -> Type[Serializer]:
         if self.action == "list":
@@ -116,6 +131,8 @@ class TripViewSet(viewsets.ModelViewSet):
     queryset = Trip.objects.prefetch_related("train__train_type").order_by("departure_time")
     serializer_class = TripSerializer
     pagination_class = StandardPagination
+    permission_classes = (IsAdminOrReadOnly,)
+    authentication_classes = []
 
     def get_serializer_class(self) -> Type[Serializer]:
         if self.action == "list":
@@ -152,6 +169,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     pagination_class = StandardPagination
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JWTAuthentication,)
 
     def get_queryset(self) -> Type[QuerySet]:
         queryset = self.queryset.filter(user=self.request.user)
