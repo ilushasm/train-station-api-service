@@ -66,6 +66,20 @@ class Trip(models.Model):
     def __str__(self) -> str:
         return f"{self.route} [{self.departure_time}]"
 
+    @staticmethod
+    def validate_trip(departure, arrival, error_to_raise) -> None:
+        if arrival <= departure:
+            raise error_to_raise(
+                {"Arrival time must be greater than departure time."}
+            )
+
+    def clean(self) -> None:
+        Trip.validate_trip(
+            departure=self.departure_time,
+            arrival=self.arrival_time,
+            error_to_raise=ValidationError
+        )
+
 
 class Ticket(models.Model):
     luggage_weight = models.IntegerField()

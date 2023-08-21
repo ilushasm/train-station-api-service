@@ -22,11 +22,16 @@ class TrainTypeSerializer(serializers.ModelSerializer):
 
 
 class TrainSerializer(serializers.ModelSerializer):
-    train_type = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
-
     class Meta:
         model = Train
         fields = ("id", "name", "luggage_space", "train_type", "seats_num")
+
+
+class TrainListSerializer(TrainSerializer):
+    train_type = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
+
+    class Meta(TrainSerializer.Meta):
+        pass
 
 
 class StationSerializer(serializers.ModelSerializer):
@@ -53,6 +58,15 @@ class TripSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trip
         fields = ("id", "route", "departure_time", "arrival_time", "train")
+
+    def validate(self, attrs) -> None:
+        data = super(TripSerializer, self).validate(attrs)
+        Trip.validate_trip(
+            departure=attrs["departure_time"],
+            arrival=attrs["arrival_time"],
+            error_to_raise=ValidationError
+        )
+        return data
 
 
 class TripListSerializer(TripSerializer):
