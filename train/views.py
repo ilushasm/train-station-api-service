@@ -41,9 +41,7 @@ class StandardPagination(PageNumberPagination):
 
 
 class TrainTypeViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet
+    mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     queryset = TrainType.objects.all()
     serializer_class = TrainTypeSerializer
@@ -71,9 +69,7 @@ class TrainViewSet(viewsets.ModelViewSet):
 
 
 class StationViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet
+    mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     queryset = Station.objects.all()
     serializer_class = StationSerializer
@@ -82,9 +78,7 @@ class StationViewSet(
 
 
 class RouteViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet
+    mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     queryset = Route.objects.all()
     serializer_class = RouteSerializer
@@ -106,15 +100,15 @@ class RouteViewSet(
             queryset = queryset.filter(source__name__icontains=source)
 
         if destination:
-            queryset = queryset.filter(destination__name__icontains=destination)
+            queryset = queryset.filter(
+                destination__name__icontains=destination
+            )
 
         return queryset
 
 
 class CrewViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet
+    mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     queryset = Crew.objects.prefetch_related("assigned_trips")
     serializer_class = CrewSerializer
@@ -128,7 +122,9 @@ class CrewViewSet(
 
 
 class TripViewSet(viewsets.ModelViewSet):
-    queryset = Trip.objects.prefetch_related("train__train_type").order_by("departure_time")
+    queryset = Trip.objects.prefetch_related("train__train_type").order_by(
+        "departure_time"
+    )
     serializer_class = TripSerializer
     pagination_class = StandardPagination
     permission_classes = (IsAdminOrReadOnly,)
@@ -157,10 +153,8 @@ class TripViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(route__name__icontains=route)
 
         if self.action in ["list", "retrieve"]:
-            queryset = (
-                queryset
-                .prefetch_related("train")
-                .annotate(available_seats=F("train__seats_num") - Count("tickets"))
+            queryset = queryset.prefetch_related("train").annotate(
+                available_seats=F("train__seats_num") - Count("tickets")
             )
         return queryset
 

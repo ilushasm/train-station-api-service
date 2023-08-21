@@ -15,7 +15,9 @@ class Train(models.Model):
     name = models.CharField(max_length=63)
     luggage_space = models.IntegerField()
     seats_num = models.IntegerField()
-    train_type = models.ForeignKey(TrainType, on_delete=models.CASCADE, related_name="trains")
+    train_type = models.ForeignKey(
+        TrainType, on_delete=models.CASCADE, related_name="trains"
+    )
 
     class Meta:
         ordering = ("name",)
@@ -35,8 +37,12 @@ class Station(models.Model):
 
 class Route(models.Model):
     name = models.CharField(max_length=255)
-    source = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="sources")
-    destination = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="destinations")
+    source = models.ForeignKey(
+        Station, on_delete=models.CASCADE, related_name="sources"
+    )
+    destination = models.ForeignKey(
+        Station, on_delete=models.CASCADE, related_name="destinations"
+    )
     distance = models.IntegerField()
 
     class Meta:
@@ -49,7 +55,9 @@ class Route(models.Model):
 class Crew(models.Model):
     first_name = models.CharField(max_length=63)
     last_name = models.CharField(max_length=63)
-    assigned_trips = models.ForeignKey("Trip", on_delete=models.CASCADE, related_name="trips", null=True)
+    assigned_trips = models.ForeignKey(
+        "Trip", on_delete=models.CASCADE, related_name="trips", null=True
+    )
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"
@@ -57,7 +65,9 @@ class Crew(models.Model):
 
 class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="orders")
+    user = models.ForeignKey(
+        get_user_model(), on_delete=models.CASCADE, related_name="orders"
+    )
 
     class Meta:
         ordering = ("created_at",)
@@ -67,8 +77,16 @@ class Order(models.Model):
 
 
 class Trip(models.Model):
-    route = models.ForeignKey(Route, on_delete=models.CASCADE, related_name="trips")
-    train = models.ForeignKey(Train, on_delete=models.CASCADE, related_name="trips")
+    route = models.ForeignKey(
+        Route,
+        on_delete=models.CASCADE,
+        related_name="trips"
+    )
+    train = models.ForeignKey(
+        Train,
+        on_delete=models.CASCADE,
+        related_name="trips"
+    )
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
 
@@ -89,15 +107,23 @@ class Trip(models.Model):
         Trip.validate_trip(
             departure=self.departure_time,
             arrival=self.arrival_time,
-            error_to_raise=ValidationError
+            error_to_raise=ValidationError,
         )
 
 
 class Ticket(models.Model):
     luggage_weight = models.IntegerField()
     seat = models.IntegerField()
-    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="tickets")
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="tickets")
+    trip = models.ForeignKey(
+        Trip,
+        on_delete=models.CASCADE,
+        related_name="tickets"
+    )
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="tickets"
+    )
 
     class Meta:
         unique_together = ("trip", "seat")
@@ -107,9 +133,7 @@ class Ticket(models.Model):
         seats = train.seats_num
         max_luggage = train.luggage_space
         if not 1 <= seat <= seats:
-            raise error_to_raise(
-                {f"Seat number must be in range [1, {seats}"}
-            )
+            raise error_to_raise({f"Seat number must be in range [1, {seats}"})
         if luggage_weight > max_luggage:
             raise error_to_raise(
                 {f"Maximum luggage weight per ticket is {train.luggage_space}"}
@@ -123,11 +147,17 @@ class Ticket(models.Model):
             seat=self.seat,
             train=self.trip.train,
             luggage_weight=self.luggage_weight,
-            error_to_raise=ValidationError
+            error_to_raise=ValidationError,
         )
 
     def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
+            self,
+            force_insert=False,
+            force_update=False,
+            using=None,
+            update_fields=None
     ) -> None:
         self.full_clean()
-        return super(Ticket, self).save(force_insert, force_update, using, update_fields)
+        return super(Ticket, self).save(
+            force_insert, force_update, using, update_fields
+        )

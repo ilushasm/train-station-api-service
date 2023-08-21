@@ -34,8 +34,14 @@ class RouteSerializer(serializers.ModelSerializer):
 
 
 class RouteListSerializer(RouteSerializer):
-    source = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
-    destination = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
+    source = serializers.SlugRelatedField(
+        many=False,
+        read_only=True,
+        slug_field="name"
+    )
+    destination = serializers.SlugRelatedField(
+        many=False, read_only=True, slug_field="name"
+    )
 
     class Meta(RouteSerializer.Meta):
         pass
@@ -57,13 +63,16 @@ class TripSerializer(serializers.ModelSerializer):
         Trip.validate_trip(
             departure=attrs["departure_time"],
             arrival=attrs["arrival_time"],
-            error_to_raise=ValidationError
+            error_to_raise=ValidationError,
         )
         return data
 
 
 class TripListSerializer(TripSerializer):
-    train_type = serializers.CharField(source="train.train_type", read_only=True)
+    train_type = serializers.CharField(
+        source="train.train_type",
+        read_only=True
+    )
     route_name = serializers.CharField(source="route.name", read_only=True)
     available_seats = serializers.IntegerField(read_only=True)
 
@@ -74,17 +83,14 @@ class TripListSerializer(TripSerializer):
             "departure_time",
             "arrival_time",
             "train_type",
-            "available_seats"
+            "available_seats",
         )
 
 
 class TripRetrieveSerializer(TripListSerializer):
     train = TrainSerializer(many=False, read_only=True)
     taken_seats = serializers.SlugRelatedField(
-        source="tickets",
-        many=True,
-        read_only=True,
-        slug_field="seat"
+        source="tickets", many=True, read_only=True, slug_field="seat"
     )
 
     class Meta(TripListSerializer.Meta):
@@ -95,7 +101,7 @@ class TripRetrieveSerializer(TripListSerializer):
             "arrival_time",
             "train",
             "taken_seats",
-            "available_seats"
+            "available_seats",
         )
 
 
@@ -113,7 +119,9 @@ class CrewListSerializer(CrewSerializer):
 
 
 class TrainListSerializer(TrainSerializer):
-    train_type = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
+    train_type = serializers.SlugRelatedField(
+        many=False, read_only=True, slug_field="name"
+    )
 
     class Meta(TrainSerializer.Meta):
         pass
@@ -138,7 +146,7 @@ class TicketSerializer(serializers.ModelSerializer):
             seat=attrs["seat"],
             train=attrs["trip"].train,
             luggage_weight=attrs["luggage_weight"],
-            error_to_raise=ValidationError
+            error_to_raise=ValidationError,
         )
         return data
 
