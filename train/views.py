@@ -107,6 +107,19 @@ class TripViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self) -> Type[QuerySet]:
         queryset = self.queryset
+        departure = self.request.query_params.get("departure")
+        arrival = self.request.query_params.get("arrival")
+        route = self.request.query_params.get("route")
+
+        if departure:
+            queryset = queryset.filter(departure_time__date=departure)
+
+        if arrival:
+            queryset = queryset.filter(arrival_time__date=arrival)
+
+        if route:
+            queryset = queryset.filter(route__name__icontains=route)
+
         if self.action in ["list", "retrieve"]:
             queryset = (
                 queryset
