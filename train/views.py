@@ -2,9 +2,13 @@ from typing import Type
 
 from django.db.models import QuerySet, Count, F
 from rest_framework import viewsets, mixins
+from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
+
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -106,6 +110,27 @@ class RouteViewSet(
 
         return queryset
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "source",
+                type=OpenApiTypes.STR,
+                description="Filter by source station name "
+                            "(ex. ?source=lviv)",
+            ),
+            OpenApiParameter(
+                "destination",
+                type=OpenApiTypes.STR,
+                description=(
+                        "Filter by destination station name "
+                        "(ex. ?destination=kyiv)"
+                ),
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs) -> Response:
+        return super().list(request, *args, **kwargs)
+
 
 class CrewViewSet(
     mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
@@ -157,6 +182,35 @@ class TripViewSet(viewsets.ModelViewSet):
                 available_seats=F("train__seats_num") - Count("tickets")
             )
         return queryset
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "departure",
+                type=OpenApiTypes.DATE,
+                description="Filter by departure date "
+                            "(ex. ?departure=2023-08-24)"
+            ),
+            OpenApiParameter(
+                "arrival",
+                type=OpenApiTypes.DATE,
+                description=(
+                        "Filter by arrival date "
+                        "(ex. ?arrival=2023-08-24)"
+                ),
+            ),
+            OpenApiParameter(
+                "route",
+                type=OpenApiTypes.STR,
+                description=(
+                    "Filter by route name "
+                    "(ex. ?route=lviv)"
+                )
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs) -> Response:
+        return super().list(request, *args, **kwargs)
 
 
 class OrderViewSet(viewsets.ModelViewSet):
