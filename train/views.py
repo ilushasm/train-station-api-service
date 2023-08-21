@@ -19,6 +19,7 @@ from train.serializers import (
     TrainRetrieveSerializer,
     StationSerializer,
     RouteSerializer,
+    RouteListSerializer,
     CrewSerializer,
     OrderSerializer,
     OrderListSerializer,
@@ -63,9 +64,18 @@ class StationViewSet(
     serializer_class = StationSerializer
 
 
-class RouteViewSet(viewsets.ModelViewSet):
+class RouteViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
     queryset = Route.objects.all()
     serializer_class = RouteSerializer
+
+    def get_serializer_class(self) -> Type[Serializer]:
+        if self.action == "list":
+            return RouteListSerializer
+        return RouteSerializer
 
 
 class CrewViewSet(

@@ -42,15 +42,17 @@ class StationSerializer(serializers.ModelSerializer):
 
 
 class RouteSerializer(serializers.ModelSerializer):
-    source = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
-    destination = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
-
     class Meta:
         model = Route
         fields = ("id", "name", "source", "destination", "distance")
 
 
+class RouteListSerializer(RouteSerializer):
+    source = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
+    destination = serializers.SlugRelatedField(many=False, read_only=True, slug_field="name")
 
+    class Meta(RouteSerializer.Meta):
+        pass
 
 
 class TripSerializer(serializers.ModelSerializer):
@@ -102,7 +104,8 @@ class TrainRetrieveSerializer(TrainSerializer):
     class Meta(TrainSerializer.Meta):
         fields = TrainSerializer.Meta.fields + ("trips",)
 
-    def get_trips(self, instance) -> list:
+    @staticmethod
+    def get_trips(instance) -> list:
         trips_queryset = instance.trips.all()
         return [trip.route.name for trip in trips_queryset]
 
