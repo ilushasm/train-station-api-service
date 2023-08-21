@@ -77,11 +77,16 @@ class Ticket(models.Model):
         unique_together = ("trip", "seat")
 
     @staticmethod
-    def validate_ticket(seat, train, error_to_raise) -> None:
-        count_attrs = train.seats_num
-        if not (1 <= seat <= count_attrs):
+    def validate_ticket(seat, train, cargo, error_to_raise) -> None:
+        seats = train.seats_num
+        max_luggage = train.luggage_space
+        if not 1 <= seat <= seats:
             raise error_to_raise(
-                {f"Seat number must be in range [1, {count_attrs}"}
+                {f"Seat number must be in range [1, {seats}"}
+            )
+        if cargo > max_luggage:
+            raise error_to_raise(
+                {f"Maximum luggage space per ticket is {train.luggage_space}"}
             )
 
     def __str__(self) -> str:
@@ -91,6 +96,7 @@ class Ticket(models.Model):
         Ticket.validate_ticket(
             seat=self.seat,
             train=self.trip.train,
+            cargo=self.cargo,
             error_to_raise=ValidationError
         )
 
