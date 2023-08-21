@@ -79,6 +79,19 @@ class RouteViewSet(
             return RouteListSerializer
         return RouteSerializer
 
+    def get_queryset(self) -> Type[QuerySet]:
+        queryset = self.queryset
+        source = self.request.query_params.get("source")
+        destination = self.request.query_params.get("destination")
+
+        if source:
+            queryset = queryset.filter(source__name__icontains=source)
+
+        if destination:
+            queryset = queryset.filter(destination__name__icontains=destination)
+
+        return queryset
+
 
 class CrewViewSet(
     mixins.ListModelMixin,
