@@ -17,6 +17,9 @@ class Train(models.Model):
     seats_num = models.IntegerField()
     train_type = models.ForeignKey(TrainType, on_delete=models.CASCADE, related_name="trains")
 
+    class Meta:
+        ordering = ("name",)
+
     def __str__(self) -> str:
         return self.name
 
@@ -36,6 +39,9 @@ class Route(models.Model):
     destination = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="destinations")
     distance = models.IntegerField()
 
+    class Meta:
+        ordering = ("name",)
+
     def __str__(self) -> str:
         return self.name
 
@@ -53,6 +59,9 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="orders")
 
+    class Meta:
+        ordering = ("created_at",)
+
     def __str__(self) -> str:
         return f"{self.user} ({self.created_at})"
 
@@ -62,6 +71,9 @@ class Trip(models.Model):
     train = models.ForeignKey(Train, on_delete=models.CASCADE, related_name="trips")
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
+
+    class Meta:
+        ordering = ("departure_time",)
 
     def __str__(self) -> str:
         return f"{self.route} [{self.departure_time}]"

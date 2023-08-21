@@ -3,6 +3,7 @@ from typing import Type
 from django.db.models import QuerySet, Count, F
 from rest_framework import viewsets, mixins
 from rest_framework.serializers import Serializer
+from rest_framework.pagination import PageNumberPagination
 from train.models import (
     TrainType,
     Train,
@@ -11,7 +12,6 @@ from train.models import (
     Crew,
     Order,
     Trip,
-    Ticket
 )
 from train.serializers import (
     TrainTypeSerializer,
@@ -24,12 +24,15 @@ from train.serializers import (
     CrewListSerializer,
     OrderSerializer,
     OrderListSerializer,
-    # OrderRetrieveSerializer,
     TripSerializer,
     TripListSerializer,
     TripRetrieveSerializer,
-    TicketSerializer
 )
+
+
+class StandardPagination(PageNumberPagination):
+    page_size = 10
+    max_page_size = 100
 
 
 class TrainTypeViewSet(
@@ -44,6 +47,7 @@ class TrainTypeViewSet(
 class TrainViewSet(viewsets.ModelViewSet):
     queryset = Train.objects.all()
     serializer_class = TrainSerializer
+    pagination_class = StandardPagination
 
     def get_serializer_class(self) -> Type[Serializer]:
         if self.action == "retrieve":
@@ -73,6 +77,7 @@ class RouteViewSet(
 ):
     queryset = Route.objects.all()
     serializer_class = RouteSerializer
+    pagination_class = StandardPagination
 
     def get_serializer_class(self) -> Type[Serializer]:
         if self.action == "list":
@@ -108,8 +113,9 @@ class CrewViewSet(
 
 
 class TripViewSet(viewsets.ModelViewSet):
-    queryset = Trip.objects.all()
+    queryset = Trip.objects.prefetch_related("train__train_type").order_by("departure_time")
     serializer_class = TripSerializer
+    pagination_class = StandardPagination
 
     def get_serializer_class(self) -> Type[Serializer]:
         if self.action == "list":
@@ -145,6 +151,7 @@ class TripViewSet(viewsets.ModelViewSet):
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    pagination_class = StandardPagination
 
     def get_queryset(self) -> Type[QuerySet]:
         queryset = self.queryset.filter(user=self.request.user)
