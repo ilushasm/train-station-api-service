@@ -26,3 +26,4 @@ Detail information on each endpoint available on _**doc/swagger/**_ or _**doc/re
 * Ticket validation
 * Trip validation
 * User model has been changed, so email is used instead of username
+* Station images upload
